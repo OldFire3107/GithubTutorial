@@ -55,6 +55,11 @@ class Bomb(FallingItem):
     color = (40, 40, 40)
     fall_speed = 6
 
+    def __init__(self, x, y):
+        super().__init__(x, y)
+        # extra per-bomb state could go here (e.g. a flicker counter)
+        self.flash = 0
+
     def draw(self, surface):
         pygame.draw.circle(surface, self.color, (self.x, self.y), self.radius)
         # red fuse spark
@@ -64,6 +69,11 @@ class Bomb(FallingItem):
         game.score -= 5
         super().on_caught(game)
 ```
+
+> **Why the `__init__` override?** You don't strictly need one *yet*, but most
+> non-trivial items will (to track per-item state). Get in the habit of writing
+> it and calling `super().__init__(...)` — you'll need it for anything more
+> interesting than a plain falling circle.
 
 ### b) Register it in `items/__init__.py`
 
