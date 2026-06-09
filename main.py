@@ -189,6 +189,18 @@ class Game:
 
             self.draw()
 
+# Game.reset():
+self.magnet_until = 0
+
+# Game.update(), after item.update() but before catch-detection:
+if pygame.time.get_ticks() < self.magnet_until:
+    basket_center = self.basket.x + self.basket.width // 2
+    for item in self.items:
+        if item.x < basket_center:
+            item.x += 3
+        elif item.x > basket_center:
+            item.x -= 3
+
 
 if __name__ == "__main__":
     Game().run()
