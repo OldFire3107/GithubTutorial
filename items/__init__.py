@@ -12,6 +12,7 @@ Want your item to be rarer? Add it once. Want it to be common? Add it multiple t
 
 from .apple import Apple
 from .star import Star
+from .magnet import Magnet
 
 # TODO (issue #1): from .bomb import Bomb         -> subtracts points
 # TODO (issue #2): from .golden_apple import GoldenApple  -> rare, big points
@@ -22,4 +23,5 @@ ITEMS = [
     Apple,
     Apple,   # listed twice so apples are twice as common as stars
     Star,
-]
+    Magnet,
+    ]
