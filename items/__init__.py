@@ -26,6 +26,7 @@ you now want:
 
 from .apple import Apple
 from .star import Star
+from .bomb import Bomb
 
 # TODO (issue #1): from .bomb import Bomb         -> subtracts points
 # TODO (issue #2): from .golden_apple import GoldenApple  -> rare, big points
@@ -38,5 +39,5 @@ ITEMS = {
         Apple,   # listed twice so apples are twice as common as stars
         Star,
     ],
-    "bad": [],
+    "bad": [Bomb],
 }
