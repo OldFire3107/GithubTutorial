@@ -4,6 +4,7 @@ Catch the Falling Items - main game loop.
 Controls:
     Left arrow / A   -> move basket left
     Right arrow / D  -> move basket right
+    R                -> restart after game over
     Esc              -> quit
 
 The game ends when you miss MAX_MISSES items (see config.py).
@@ -54,14 +55,17 @@ class Game:
         self.big_font = pygame.font.SysFont(None, 64)
 
         self.basket = Basket()
-        self.items = []
-        self.score = 0
-        self.misses = 0
-        self.game_over = False
+        self.reset()
 
         # custom event for spawning items at a regular interval
         self.SPAWN_EVENT = pygame.USEREVENT + 1
         pygame.time.set_timer(self.SPAWN_EVENT, SPAWN_INTERVAL_MS)
+
+    def reset(self):
+        self.items = []
+        self.score = 0
+        self.misses = 0
+        self.game_over = False
 
     def spawn_item(self):
         cls = random.choice(ITEMS)
@@ -97,6 +101,9 @@ class Game:
             text = self.big_font.render("GAME OVER", True, TEXT_COLOR)
             rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
             self.screen.blit(text, rect)
+            hint = self.font.render("Press R to restart", True, TEXT_COLOR)
+            hint_rect = hint.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
+            self.screen.blit(hint, hint_rect)
 
         pygame.display.flip()
 
@@ -109,6 +116,8 @@ class Game:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit(0)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_r and self.game_over:
+                    self.reset()
                 if event.type == self.SPAWN_EVENT and not self.game_over:
                     self.spawn_item()
 
