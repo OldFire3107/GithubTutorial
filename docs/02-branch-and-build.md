@@ -101,6 +101,10 @@ You should see black bombs falling. Catch one — your score should go down by 5
 > **Tip:** if the game crashes on import, check for typos in the class name and
 > the import. Python will tell you the exact line.
 
+**Picked a different issue?** Each issue has progressive hints in
+[docs/hints/](hints/) — Hint 1 nudges you in the right direction, Hint 3 is a
+near-final sketch. Use as much as you need.
+
 ## 4. Commit
 
 ```bash

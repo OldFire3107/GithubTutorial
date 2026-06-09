@@ -55,7 +55,7 @@ extensions you can do same-session or come back to later.
 |---|---|---|
 | 00 | [Setup](docs/00-setup.md) | Fork, clone, add upstream remote, install, run |
 | 01 | [Pick an issue](docs/01-pick-an-issue.md) | Browse issues, self-assign, the `Closes #N` convention |
-| 02 | [Branch and build](docs/02-branch-and-build.md) | Feature branches; create your falling item |
+| 02 | [Branch and build](docs/02-branch-and-build.md) | Feature branches; create your falling item ([hints/](docs/hints/)) |
 | 03 | [Open a PR](docs/03-open-a-pr.md) | Push your branch, open a pull request, link the issue |
 | 04 | [Stash side-quest](docs/04-stash-side-quest.md) | `git stash` when you need to switch contexts mid-feature |
 | 05 | [The conflict](docs/05-the-conflict.md) | `newupdate` refactored the base class — resolve the merge conflicts |
