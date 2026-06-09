@@ -4,6 +4,8 @@ Catch the Falling Items - main game loop.
 Controls:
     Left arrow / A   -> move basket left
     Right arrow / D  -> move basket right
+    Shift            -> dash (costs 1 stamina)
+    Space            -> jump (dash then jump quickly for a dash-jump combo)
     R                -> restart after game over
     Esc              -> quit
 
@@ -37,7 +39,15 @@ from config import (
     FPS,
     HEIGHT,
     MAX_MISSES,
+    MAX_STAMINA,
     SPAWN_INTERVAL_MS,
+    STAMINA_BAR_CENTER,
+    STAMINA_BAR_HEIGHT,
+    STAMINA_BAR_WIDTH,
+    STAMINA_COLOR,
+    STAMINA_EMPTY_COLOR,
+    STAMINA_READY_COLOR,
+    STAMINA_SEG_GAP,
     TEXT_COLOR,
     TITLE,
     WIDTH,
@@ -66,17 +76,35 @@ class Game:
         self.score = 0
         self.misses = 0
         self.game_over = False
+        self.magnet_until = 0
 
     def spawn_item(self):
-        cls = random.choice(ITEMS)
+        # 80% chance of a good item, 20% bad. If "bad" is empty (default
+        # before participants add bombs etc.), fall back to good.
+        category = "good"
+        if ITEMS.get("bad") and random.random() < 0.2:
+            category = "bad"
+        cls = random.choice(ITEMS[category])
         x = random.randint(20, WIDTH - 20)
-        self.items.append(cls(x, 0))
+        # weight varies a little so items don't all fall at the same speed
+        weight = random.uniform(0.8, 1.3)
+        # NOTE: keyword args here. Items built against the old (x, y) signature
+        # will fail loudly with "unexpected keyword argument 'pos'", forcing
+        # contributors to update their __init__ to the new signature.
+        self.items.append(cls(pos=(x, 0), weight=weight))
 
     def update(self):
+        magnet_active = pygame.time.get_ticks() < self.magnet_until
+        basket_center = self.basket.x + self.basket.width // 2
         for item in self.items:
             item.update()
+            if magnet_active:
+                if item.x < basket_center:
+                    item.x = min(item.x + 3, basket_center)
+                elif item.x > basket_center:
+                    item.x = max(item.x - 3, basket_center)
             if self.basket.catches(item):
-                item.on_caught(self)
+                item.on_collect(self)
             elif item.y > HEIGHT:
                 item.on_missed(self)
         self.items = [it for it in self.items if it.alive]
@@ -97,6 +125,8 @@ class Game:
         )
         self.screen.blit(hud, (10, 10))
 
+        self.draw_stamina()
+
         if self.game_over:
             text = self.big_font.render("GAME OVER", True, TEXT_COLOR)
             rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
@@ -107,27 +137,65 @@ class Game:
 
         pygame.display.flip()
 
+    def draw_stamina(self):
+        """Deadlock-style centered stamina pips: grey normally, blue when a
+        dash-jump is available."""
+        cx, cy = STAMINA_BAR_CENTER
+        n = MAX_STAMINA
+        seg_w = (STAMINA_BAR_WIDTH - STAMINA_SEG_GAP * (n - 1)) / n
+        left = cx - STAMINA_BAR_WIDTH / 2
+        top = cy - STAMINA_BAR_HEIGHT / 2
+
+        ready = self.basket.dash_jump_ready
+        fill_color = STAMINA_READY_COLOR if ready else STAMINA_COLOR
+
+        for i in range(n):
+            x = left + i * (seg_w + STAMINA_SEG_GAP)
+            # Dim background for the full segment.
+            pygame.draw.rect(
+                self.screen,
+                STAMINA_EMPTY_COLOR,
+                (x, top, seg_w, STAMINA_BAR_HEIGHT),
+                border_radius=3,
+            )
+            # Filled portion (the partially-regenerated pip fills left-to-right).
+            seg_fill = max(0.0, min(1.0, self.basket.stamina - i))
+            if seg_fill > 0:
+                pygame.draw.rect(
+                    self.screen,
+                    fill_color,
+                    (x, top, seg_w * seg_fill, STAMINA_BAR_HEIGHT),
+                    border_radius=3,
+                )
+
     def run(self):
         while True:
+            dt = self.clock.tick(FPS)  # ms since last frame
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit(0)
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit(0)
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_r and self.game_over:
-                    self.reset()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        sys.exit(0)
+                    if event.key == pygame.K_r and self.game_over:
+                        self.reset()
+                    if not self.game_over:
+                        if event.key in (pygame.K_LSHIFT, pygame.K_RSHIFT):
+                            self.basket.dash()
+                        elif event.key == pygame.K_SPACE:
+                            self.basket.jump()
                 if event.type == self.SPAWN_EVENT and not self.game_over:
                     self.spawn_item()
 
             if not self.game_over:
                 keys = pygame.key.get_pressed()
-                self.basket.handle_input(keys)
+                self.basket.update(dt, keys)
                 self.update()
 
             self.draw()
-            self.clock.tick(FPS)
 
 
 if __name__ == "__main__":
