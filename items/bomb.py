@@ -9,11 +9,6 @@ class Bomb(FallingItem):
     color = (40, 40, 40)
     fall_speed = 6
 
-    def __init__(self, x, y):
-        super().__init__(x, y)
-        # extra per-bomb state could go here (e.g. a flicker counter)
-        self.flash = 0
-
     def draw(self, surface):
         pygame.draw.circle(surface, self.color, (self.x, self.y), self.radius)
         # red fuse spark
