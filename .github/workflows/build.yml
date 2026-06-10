@@ -25,9 +25,7 @@ jobs:
           # --- core arches (must build) ---
           - os: ubuntu-latest          # Linux x86_64
             asset: catch-the-falling-items-linux-x86_64
-          - os: macos-13               # macOS Intel
-            asset: catch-the-falling-items-macos-x86_64
-          - os: macos-latest           # macOS Apple Silicon
+          - os: macos-latest           # macOS Apple Silicon (Intel not supported)
             asset: catch-the-falling-items-macos-arm64
           - os: windows-latest         # Windows x86_64
             asset: catch-the-falling-items-windows-x86_64
