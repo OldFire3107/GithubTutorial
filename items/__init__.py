@@ -40,9 +40,12 @@ from .bomb import Bomb
 ITEMS = {
     "good": [
         Apple,
-        Apple,   # listed twice so apples are twice as common as stars
+        Apple,
+        Apple,
+        Apple,   # apples stay twice as common as stars (4:2)
         Star,
-        Magnet,
+        Star,
+        Magnet,  # rare powerup: ~1 in 7 good items (was 1 in 4)
     ],
     "bad": [Bomb],
 }

@@ -5,7 +5,8 @@ Controls:
     Left arrow / A   -> move basket left
     Right arrow / D  -> move basket right
     Shift            -> dash (costs 1 stamina)
-    Space            -> jump (dash then jump quickly for a dash-jump combo)
+    Space            -> jump (dash then jump quickly for a dash-jump combo,
+                        which costs 2 stamina in total)
     R                -> restart after game over
     Esc              -> quit
 

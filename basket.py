@@ -21,6 +21,7 @@ from config import (
     DASH_COST,
     DASH_DURATION_MS,
     DASH_JUMP_BOOST,
+    DASH_JUMP_COST,
     DASH_JUMP_VY_MULT,
     DASH_JUMP_WINDOW_MS,
     DASH_SPEED,
@@ -64,11 +65,17 @@ class Basket:
         self.dash_jump_window = DASH_JUMP_WINDOW_MS
 
     def jump(self):
-        """Leap upward. If a dash just happened, chain into a dash-jump."""
+        """Leap upward. If a dash just happened (and you can afford it), chain
+        into a dash-jump."""
         if not self.on_ground:
             return  # no double-jumping
         self.on_ground = False
-        if self.dash_jump_window > 0:
+        # A dash-jump costs DASH_JUMP_COST stamina in total. The dash already
+        # paid DASH_COST, so the jump charges the remainder; without enough
+        # stamina for it you just get a normal jump.
+        combo_extra = DASH_JUMP_COST - DASH_COST
+        if self.dash_jump_window > 0 and self.stamina >= combo_extra:
+            self.stamina -= combo_extra
             # Dash-jump combo: keep (and boost) the dash momentum and leap higher.
             self.vx = self.facing * (DASH_SPEED + DASH_JUMP_BOOST)
             self.vy = JUMP_VELOCITY * DASH_JUMP_VY_MULT
@@ -78,8 +85,9 @@ class Basket:
 
     @property
     def dash_jump_ready(self):
-        """True during the brief window where pressing jump yields the combo."""
-        return self.dash_jump_window > 0
+        """True during the brief window where pressing jump yields the combo —
+        and only while you can still afford the combo's extra stamina."""
+        return self.dash_jump_window > 0 and self.stamina >= (DASH_JUMP_COST - DASH_COST)
 
     # --- per-frame update ---
 
