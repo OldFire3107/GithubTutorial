@@ -1,0 +1,91 @@
+name: release
+
+# Triggered by pushing a version tag (e.g. v1.0.0). It re-runs the headless
+# smoke test and builds a standalone binary for each OS; only if ALL of those
+# jobs pass does the final job publish a GitHub Release with the binaries
+# attached. A failing test or build blocks the release.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: verify & build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: catch-the-falling-items-linux
+          - os: macos-latest
+            asset: catch-the-falling-items-macos
+          - os: windows-latest
+            asset: catch-the-falling-items-windows
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Verify (headless smoke test)
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: python smoke_test.py
+
+      - name: Build binary
+        shell: bash
+        run: |
+          pyinstaller --onefile --windowed --name "${{ matrix.asset }}" main.py
+
+      - name: Stage binary
+        shell: bash
+        run: |
+          mkdir -p staging
+          if [ -f "dist/${{ matrix.asset }}.exe" ]; then
+            cp "dist/${{ matrix.asset }}.exe" "staging/${{ matrix.asset }}.exe"
+          else
+            cp "dist/${{ matrix.asset }}" "staging/${{ matrix.asset }}"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: staging/*
+          if-no-files-found: error
+
+  release:
+    name: publish release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: artifacts/**/*
+          fail_on_unmatched_files: true

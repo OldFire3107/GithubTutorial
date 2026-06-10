@@ -1,0 +1,70 @@
+name: build
+
+# Continuous integration: on every push / PR, run the headless smoke test and
+# build a standalone binary for each OS. Binaries are uploaded as artifacts so
+# you can download and try them without tagging a release.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: catch-the-falling-items-linux
+          - os: macos-latest
+            asset: catch-the-falling-items-macos
+          - os: windows-latest
+            asset: catch-the-falling-items-windows
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Run headless smoke test
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: python smoke_test.py
+
+      - name: Build binary
+        shell: bash
+        run: |
+          pyinstaller --onefile --windowed --name "${{ matrix.asset }}" main.py
+
+      - name: Stage binary
+        shell: bash
+        run: |
+          mkdir -p staging
+          if [ -f "dist/${{ matrix.asset }}.exe" ]; then
+            cp "dist/${{ matrix.asset }}.exe" "staging/${{ matrix.asset }}.exe"
+          else
+            cp "dist/${{ matrix.asset }}" "staging/${{ matrix.asset }}"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: staging/*
+          if-no-files-found: error
