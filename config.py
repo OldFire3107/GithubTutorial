@@ -38,7 +38,8 @@ DASH_JUMP_VY_MULT = 1.15  # dash-jumps leap a little higher than a normal jump
 # --- stamina ---
 MAX_STAMINA = 3             # number of stamina bars
 DASH_COST = 1               # stamina spent per dash
-STAMINA_REGEN_PER_SEC = 0.5 # bars regenerated per second (slow trickle)
+DASH_JUMP_COST = 2          # total stamina spent on a dash-jump combo
+STAMINA_REGEN_PER_SEC = 0.3 # bars regenerated per second (slow trickle)
 
 # --- stamina bar UI ---
 STAMINA_BAR_CENTER = (WIDTH // 2, 64)  # center point of the bar (it's centered here)

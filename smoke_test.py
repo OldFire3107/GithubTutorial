@@ -108,6 +108,22 @@ def test_missing_ends_game(game):
     print(f"  ok: {MAX_MISSES} misses ends the game")
 
 
+def test_dash_jump_costs_two_stamina(game):
+    from config import MAX_STAMINA, DASH_JUMP_COST
+    b = game.basket
+    b.stamina = float(MAX_STAMINA)
+    b.on_ground = True
+    b.facing = 1
+    b.dash()   # spends DASH_COST and opens the dash-jump window
+    assert b.dash_jump_window > 0, "dash should open the dash-jump window"
+    b.jump()   # combo should bring the total spend up to DASH_JUMP_COST
+    spent = MAX_STAMINA - b.stamina
+    assert abs(spent - DASH_JUMP_COST) < 1e-9, (
+        f"dash-jump should cost {DASH_JUMP_COST} stamina, spent {spent}"
+    )
+    print(f"  ok: dash-jump combo costs {DASH_JUMP_COST} stamina")
+
+
 def test_main_loop_steps(game):
     game.reset()
     # Spawn and step many frames; nothing should raise.
@@ -124,6 +140,7 @@ def main():
     test_each_item_renders_and_collects(game)
     test_score_and_bomb(game)
     test_magnet_pull(game)
+    test_dash_jump_costs_two_stamina(game)
     test_missing_ends_game(game)
     test_main_loop_steps(game)
     pygame.quit()
