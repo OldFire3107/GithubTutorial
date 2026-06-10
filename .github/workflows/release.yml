@@ -15,18 +15,32 @@ permissions:
 
 jobs:
   build:
-    name: verify & build (${{ matrix.os }})
+    name: verify & build (${{ matrix.asset }})
     runs-on: ${{ matrix.os }}
+    # Best-effort arches (ARM Linux/Windows) may lack prebuilt pygame wheels.
+    # They publish if they build, but a failure does NOT block the release;
+    # the four core arches below are required gates.
+    continue-on-error: ${{ matrix.experimental == true }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            asset: catch-the-falling-items-linux
-          - os: macos-latest
-            asset: catch-the-falling-items-macos
-          - os: windows-latest
-            asset: catch-the-falling-items-windows
+          # --- core arches (required: a failure blocks the release) ---
+          - os: ubuntu-latest          # Linux x86_64
+            asset: catch-the-falling-items-linux-x86_64
+          - os: macos-13               # macOS Intel
+            asset: catch-the-falling-items-macos-x86_64
+          - os: macos-latest           # macOS Apple Silicon
+            asset: catch-the-falling-items-macos-arm64
+          - os: windows-latest         # Windows x86_64
+            asset: catch-the-falling-items-windows-x86_64
+          # --- best-effort arches (published if they build, never block) ---
+          - os: ubuntu-24.04-arm       # Linux arm64
+            asset: catch-the-falling-items-linux-arm64
+            experimental: true
+          - os: windows-11-arm         # Windows arm64
+            asset: catch-the-falling-items-windows-arm64
+            experimental: true
 
     steps:
       - uses: actions/checkout@v4
