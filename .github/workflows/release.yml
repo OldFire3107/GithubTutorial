@@ -66,13 +66,22 @@ jobs:
       - name: Build binary
         shell: bash
         run: |
-          pyinstaller --onefile --windowed --name "${{ matrix.asset }}" main.py
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            # onedir + windowed produces a proper double-clickable .app bundle
+            pyinstaller --windowed --name "${{ matrix.asset }}" main.py
+          else
+            pyinstaller --onefile --windowed --name "${{ matrix.asset }}" main.py
+          fi
 
       - name: Stage binary
         shell: bash
         run: |
           mkdir -p staging
-          if [ -f "dist/${{ matrix.asset }}.exe" ]; then
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            # zip the .app (a release asset can't be a directory); ditto keeps
+            # the bundle's symlinks, Info.plist, and code-signature intact
+            ditto -c -k --keepParent "dist/${{ matrix.asset }}.app" "staging/${{ matrix.asset }}.app.zip"
+          elif [ -f "dist/${{ matrix.asset }}.exe" ]; then
             cp "dist/${{ matrix.asset }}.exe" "staging/${{ matrix.asset }}.exe"
           else
             cp "dist/${{ matrix.asset }}" "staging/${{ matrix.asset }}"
