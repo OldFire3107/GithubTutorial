@@ -17,3 +17,7 @@ class Bomb(FallingItem):
     def on_collect(self, game):
         game.score -= 5
         super().on_collect(game)
+
+    def on_missed(self, game):
+        """Called once when this item falls off the bottom of the screen. Doesn't count as missed since it's bad."""
+        self.alive = False
